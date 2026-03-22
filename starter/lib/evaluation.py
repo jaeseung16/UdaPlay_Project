@@ -1,6 +1,6 @@
 import json
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from lib.agents import AgentState
 from lib.state_machine import Run
@@ -60,6 +60,22 @@ class JudgeEvaluation(BaseModel):
     format_correct: bool = Field(description="Whether output format is correct")
     instructions_followed: bool = Field(description="Whether prompt instructions were followed")
     explanation: str = Field(description="Brief explanation of the evaluation")
+
+# https://knowledge.udacity.com/questions/1072662
+class EvaluationReport(BaseModel):
+    useful: bool = Field(description="Whether the documents are useful to answer the question")
+    description: str = Field(description="Detailed description about the evaluation result")
+
+    @field_validator('useful', mode='before')
+    @classmethod
+    def parse_boolean_string(cls, value):
+        if isinstance(value, str):
+            lower_value = value.lower()
+            if lower_value in ('true', '1', 'yes'):
+                return True
+            elif lower_value in ('false', '0', 'no'):
+                return False
+        return value
 
 class AgentEvaluator:
     """Comprehensive agent evaluation framework"""
